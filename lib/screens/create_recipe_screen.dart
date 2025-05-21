@@ -1,83 +1,203 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../models/recipe.dart';
+import '../providers/recipe_provider.dart';
 
 class CreateRecipeScreen extends StatefulWidget {
-  final String token;
-  CreateRecipeScreen({required this.token});
+  final Recipe? recipe; // If provided, we're editing an existing recipe
+
+  const CreateRecipeScreen({super.key, this.recipe});
 
   @override
-  _CreateRecipeScreenState createState() => _CreateRecipeScreenState();
+  State<CreateRecipeScreen> createState() => _CreateRecipeScreenState();
 }
 
 class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
-  final titleCtrl = TextEditingController();
-  final ingredientsCtrl = TextEditingController();
-  final instructionsCtrl = TextEditingController();
-  final cookingTimeCtrl = TextEditingController();
-  int difficulty = 1;
-
-  final api = ApiService();
+  final _formKey = GlobalKey<FormState>();
+  final _titleController = TextEditingController();
+  final _ingredientsController = TextEditingController();
+  final _instructionsController = TextEditingController();
+  int _cookingTime = 30;
+  int _difficulty = 3;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text('Новий рецепт')),
-    body: Padding(
-      padding: EdgeInsets.all(16),
-      child: ListView(
-        children: [
-          TextField(
-              controller: titleCtrl,
-              decoration: InputDecoration(labelText: 'Назва')),
-          TextField(
-              controller: ingredientsCtrl,
-              decoration: InputDecoration(labelText: 'Інгредієнти')),
-          TextField(
-              controller: instructionsCtrl,
-              decoration: InputDecoration(labelText: 'Інструкція'),
-              maxLines: 4),
-          TextField(
-              controller: cookingTimeCtrl,
-              decoration:
-              InputDecoration(labelText: 'Час приготування (хв)'),
-              keyboardType: TextInputType.number),
-          SizedBox(height: 10),
-          Text('Складність: $difficulty'),
-          Slider(
-            value: difficulty.toDouble(),
-            min: 1,
-            max: 5,
-            divisions: 4,
-            label: difficulty.toString(),
-            onChanged: (val) {
-              setState(() {
-                difficulty = val.toInt();
-              });
-            },
-          ),
-          SizedBox(height: 20),
-          ElevatedButton(
-            child: Text('Опублікувати рецепт'),
-            onPressed: () async {
-              bool success = await api.createRecipe(
-                widget.token,
-                titleCtrl.text,
-                ingredientsCtrl.text,
-                instructionsCtrl.text,
-                int.tryParse(cookingTimeCtrl.text) ?? 10,
-                difficulty,
-              );
+  void initState() {
+    super.initState();
+    if (widget.recipe != null) {
+      _titleController.text = widget.recipe!.title;
+      _ingredientsController.text = widget.recipe!.ingredients;
+      _instructionsController.text = widget.recipe!.instructions;
+      _cookingTime = widget.recipe!.cookingTime;
+      _difficulty = widget.recipe!.difficulty;
+    }
+  }
 
-              if (success) {
-                Navigator.pop(context);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Помилка створення рецепта')),
-                );
-              }
-            },
-          )
-        ],
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _ingredientsController.dispose();
+    _instructionsController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.recipe == null ? 'Create Recipe' : 'Edit Recipe'),
       ),
-    ),
-  );
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            TextFormField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'Recipe Title',
+                hintText: 'Enter the name of your recipe',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter a title';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Cooking Time',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            value: _cookingTime.toDouble(),
+                            min: 5,
+                            max: 180,
+                            divisions: 35,
+                            label: '$_cookingTime minutes',
+                            onChanged: (value) {
+                              setState(() {
+                                _cookingTime = value.round();
+                              });
+                            },
+                          ),
+                        ),
+                        Text(
+                          '$_cookingTime min',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Difficulty Level',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        return IconButton(
+                          icon: Icon(
+                            index < _difficulty
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: Colors.amber,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _difficulty = index + 1;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _ingredientsController,
+              decoration: const InputDecoration(
+                labelText: 'Ingredients',
+                hintText: 'Enter ingredients (one per line)',
+                alignLabelWithHint: true,
+              ),
+              maxLines: 5,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter ingredients';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _instructionsController,
+              decoration: const InputDecoration(
+                labelText: 'Instructions',
+                hintText: 'Enter step-by-step instructions',
+                alignLabelWithHint: true,
+              ),
+              maxLines: 8,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please enter instructions';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _submitForm,
+              child: Text(widget.recipe == null ? 'Create Recipe' : 'Save Changes'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _submitForm() {
+    if (_formKey.currentState!.validate()) {
+      final recipe = Recipe(
+        id: widget.recipe?.id ?? 0,
+        title: _titleController.text,
+        ingredients: _ingredientsController.text,
+        instructions: _instructionsController.text,
+        cookingTime: _cookingTime,
+        difficulty: _difficulty,
+      );
+
+      if (widget.recipe == null) {
+        context.read<RecipeProvider>().createRecipe(recipe);
+      } else {
+        // Update existing recipe
+        // TODO: Implement update functionality
+      }
+
+      Navigator.pop(context);
+    }
+  }
 }

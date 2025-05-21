@@ -8,6 +8,8 @@ class LoginScreen extends StatelessWidget {
   final passCtrl = TextEditingController();
   final api = ApiService();
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text('Вхід')),
@@ -20,8 +22,10 @@ class LoginScreen extends StatelessWidget {
           ElevatedButton(
             child: Text('Увійти'),
             onPressed: () async {
-              String? token = await api.login(emailCtrl.text, passCtrl.text);
+              final response = await api.login(emailCtrl.text, passCtrl.text);
+              String? token = response['access_token'];
               if (token != null) {
+                // ignore: use_build_context_synchronously
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen(token: token)));
               }
             },

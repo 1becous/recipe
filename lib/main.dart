@@ -1,23 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
-import 'screens/login_screen.dart';
+import 'providers/recipe_provider.dart';
+import 'screens/auth_check_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
-  Widget build(BuildContext context) => ChangeNotifierProvider(
-    create: (_) => ThemeProvider(),
-    child: Consumer<ThemeProvider>(
-      builder: (context, themeProvider, child) => MaterialApp(
-        themeMode: themeProvider.themeMode,
-        theme: ThemeData.light(),
-        darkTheme: ThemeData.dark(),
-        home: LoginScreen(),
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => RecipeProvider()),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Recipe App',
+            themeMode: themeProvider.themeMode,
+            theme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.orange,
+                brightness: Brightness.light,
+              ),
+            ),
+            darkTheme: ThemeData(
+              useMaterial3: true,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: Colors.orange,
+                brightness: Brightness.dark,
+              ),
+            ),
+            home: const AuthCheckScreen(),
+          );
+        },
       ),
-    ),
-  );
+    );
+  }
 }

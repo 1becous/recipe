@@ -1,25 +1,24 @@
-
-class Comment {
+class Rating {
   final int id;
-  final String content;
+  final double value;
   final int recipeId;
   final int userId;
   final String username;
   final DateTime createdAt;
 
-  Comment({
+  Rating({
     required this.id,
-    required this.content,
+    required this.value,
     required this.recipeId,
     required this.userId,
     required this.username,
     required this.createdAt,
   });
 
-  factory Comment.fromJson(Map<String, dynamic> json) {
-    return Comment(
+  factory Rating.fromJson(Map<String, dynamic> json) {
+    return Rating(
       id: json['id'],
-      content: json['content'],
+      value: json['value'].toDouble(),
       recipeId: json['recipe_id'],
       userId: json['user_id'],
       username: json['username'],
@@ -30,11 +29,11 @@ class Comment {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'content': content,
+      'value': value,
       'recipe_id': recipeId,
       'user_id': userId,
       'username': username,
       'created_at': createdAt.toIso8601String(),
     };
   }
-}
+} 

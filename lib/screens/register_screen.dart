@@ -8,6 +8,8 @@ class RegisterScreen extends StatelessWidget {
   final passCtrl = TextEditingController();
   final api = ApiService();
 
+  RegisterScreen({super.key});
+
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: Text('Реєстрація')),
@@ -21,8 +23,10 @@ class RegisterScreen extends StatelessWidget {
           ElevatedButton(
             child: Text('Зареєструватись'),
             onPressed: () async {
-              bool success = await api.register(nameCtrl.text, emailCtrl.text, passCtrl.text);
+              final response = await api.register(nameCtrl.text, emailCtrl.text, passCtrl.text);
+              bool success = response['success'] == true || response['status'] == 'ok';
               if (success) {
+                // ignore: use_build_context_synchronously
                 Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
               }
             },
