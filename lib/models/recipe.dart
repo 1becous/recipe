@@ -5,7 +5,6 @@ class Recipe {
   final String instructions;
   final int cookingTime;
   final int difficulty;
-  final double? rating;
   final int? userId;
   final String? username;
 
@@ -16,7 +15,6 @@ class Recipe {
     required this.instructions,
     required this.cookingTime,
     required this.difficulty,
-    this.rating,
     this.userId,
     this.username,
   });
@@ -29,7 +27,6 @@ class Recipe {
       instructions: json['instructions'],
       cookingTime: json['cooking_time'],
       difficulty: json['difficulty'],
-      rating: json['rating']?.toDouble(),
       userId: json['user_id'],
       username: json['username'],
     );
@@ -43,7 +40,6 @@ class Recipe {
       'instructions': instructions,
       'cooking_time': cookingTime,
       'difficulty': difficulty,
-      'rating': rating,
       'user_id': userId,
       'username': username,
     };

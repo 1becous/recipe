@@ -26,7 +26,7 @@ class AuthCheckScreen extends StatelessWidget {
               if (!tokenSnapshot.hasData) {
                 return const Scaffold(body: Center(child: CircularProgressIndicator()));
               }
-              return HomeScreen(token: tokenSnapshot.data!);
+              return HomeScreen();
             },
           );
         } else {

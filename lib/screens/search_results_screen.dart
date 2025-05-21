@@ -235,13 +235,6 @@ class _SearchResultCard extends StatelessWidget {
                               '${recipe.cookingTime} min',
                               style: const TextStyle(color: Colors.white),
                             ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              recipe.rating?.toStringAsFixed(1) ?? '0.0',
-                              style: const TextStyle(color: Colors.white),
-                            ),
                           ],
                         ),
                       ],

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:recipeapp/screens/recipe_detail_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/recipe_provider.dart';
 import '../models/recipe.dart';
 import '../widgets/custom_app_bar.dart';
@@ -99,8 +101,18 @@ class _SavedRecipeCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
-          // Navigate to recipe details
+        onTap:  () async {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('token');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RecipeDetailScreen(
+                recipeId: recipe.id,
+                token: token ?? '',
+              ),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -134,8 +146,12 @@ class _SavedRecipeCard extends StatelessWidget {
                     right: 8,
                     child: IconButton(
                       icon: const Icon(Icons.bookmark, color: Colors.white),
-                      onPressed: () {
-                        // Unsave recipe
+                      onPressed: () async {
+                        await Provider.of<RecipeProvider>(context, listen: false)
+                            .removeSavedRecipe(recipe.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Recipe removed from saved')),
+                        );
                       },
                     ),
                   ),
@@ -164,13 +180,6 @@ class _SavedRecipeCard extends StatelessWidget {
                             const SizedBox(width: 4),
                             Text(
                               '${recipe.cookingTime} min',
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.star, color: Colors.amber, size: 16),
-                            const SizedBox(width: 4),
-                            Text(
-                              recipe.rating?.toStringAsFixed(1) ?? '0.0',
                               style: const TextStyle(color: Colors.white),
                             ),
                           ],

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:recipeapp/screens/home_screen.dart';
 import '../models/recipe.dart';
 import '../providers/recipe_provider.dart';
 
@@ -193,11 +194,9 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
       if (widget.recipe == null) {
         context.read<RecipeProvider>().createRecipe(recipe);
       } else {
-        // Update existing recipe
-        // TODO: Implement update functionality
       }
 
-      Navigator.pop(context);
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
     }
   }
 }

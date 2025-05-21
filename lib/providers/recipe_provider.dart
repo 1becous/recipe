@@ -61,4 +61,14 @@ class RecipeProvider with ChangeNotifier {
       rethrow;
     }
   }
+
+  Future<void> removeSavedRecipe(int recipeId) async {
+    try {
+      await _apiService.removeSavedRecipe(recipeId);
+      await fetchSavedRecipes(); // Refresh saved recipes
+    } catch (e) {
+      print('Error removing saved recipe: $e');
+      rethrow;
+    }
+  }
 } 

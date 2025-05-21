@@ -26,7 +26,7 @@ class LoginScreen extends StatelessWidget {
               String? token = response['access_token'];
               if (token != null) {
                 // ignore: use_build_context_synchronously
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen(token: token)));
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => HomeScreen()));
               }
             },
           ),

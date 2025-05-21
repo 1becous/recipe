@@ -2,17 +2,23 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:recipeapp/screens/create_recipe_screen.dart';
+import 'package:recipeapp/screens/recipe_detail_screen.dart';
+import 'package:recipeapp/screens/saved_recipes_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/recipe_provider.dart';
 import '../models/recipe.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key, required String token});
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
   final _searchController = TextEditingController();
 
   @override
@@ -21,9 +27,29 @@ class _HomeScreenState extends State<HomeScreen> {
     Future.microtask(() => context.read<RecipeProvider>().fetchRecipes());
   }
 
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+      (route) => false,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Recipe App'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Logout',
+          ),
+        ],
+      ),
       body: CustomScrollView(
         slivers: [
           SliverAppBar.large(
@@ -33,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
               IconButton(
                 icon: const Icon(Icons.favorite_border),
                 onPressed: () {
-                  // Navigate to saved recipes
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => SavedRecipesScreen()));
                 },
               ),
             ],
@@ -89,6 +115,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => CreateRecipeScreen()));
           // Navigate to create recipe screen
         },
         child: const Icon(Icons.add),
@@ -107,8 +134,18 @@ class RecipeCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
-          // Navigate to recipe details
+        onTap:  () async {
+          final prefs = await SharedPreferences.getInstance();
+          final token = prefs.getString('token');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => RecipeDetailScreen(
+                recipeId: recipe.id,
+                token: token ?? '',
+              ),
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,13 +195,6 @@ class RecipeCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 '${recipe.cookingTime} min',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                recipe.rating?.toStringAsFixed(1) ?? '0.0',
                                 style: const TextStyle(color: Colors.white),
                               ),
                             ],
