@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../models/comment.dart';
 import '../models/recipe.dart';
 import '../models/user.dart';
 
@@ -107,33 +107,49 @@ class ApiService {
   }
 
   // Comments endpoints
-  Future<List<dynamic>> getComments(int recipeId) async {
-    final response = await http.get(Uri.parse('$baseUrl/comments/recipe/$recipeId'));
-    final data = json.decode(response.body);
-    if (data is List) {
-      return data;
-    } else {
-      if (kDebugMode) {
-        print('Unexpected response for comments: $data');
+  Future<List<Comment>> getComments(int recipeId) async {
+    final url = Uri.parse('$baseUrl/comments/recipe/$recipeId');
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data is List) {
+        return data
+            .map((e) => Comment.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
-      return [];
     }
+    throw Exception(
+        'Unexpected response ${response.statusCode}: ${response.body}');
   }
 
-  Future<Map<String, dynamic>> addComment(int recipeId, String content) async {
+
+  Future<Comment> addComment(int recipeId, String content) async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-    final response = await http.post(
-      Uri.parse('$baseUrl/comments/'),
-      headers: {'Authorization': 'Bearer $token'},
-      body: {
-        'recipe_id': recipeId.toString(),
-        'content': content,
-      },
-    );
-    return json.decode(response.body);
-  }
+    final token = prefs.getString('token') ?? '';
+    final url = Uri.parse('$baseUrl/comments/');
 
+    final payload = {
+      'content': content,
+      'recipe_id': recipeId,
+    };
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: json.encode(payload),
+    );
+
+    if (response.statusCode == 200) {
+      final map = json.decode(response.body) as Map<String, dynamic>;
+      return Comment.fromJson(map);
+    }
+
+    throw Exception(
+        'Failed to post comment ${response.statusCode}: ${response.body}');
+  }
   // отримати поточного користувача
   Future<User?> fetchCurrentUser(String token) async {
     final res = await http.get(Uri.parse('$baseUrl/users/me/'),

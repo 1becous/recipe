@@ -10,28 +10,30 @@ class CommentProvider with ChangeNotifier {
   List<Comment> get comments => _comments;
   bool get isLoading => _isLoading;
 
+  /// Завантажує список коментарів і зберігає їх у _comments
   Future<void> fetchComments(int recipeId) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final response = await _apiService.getComments(recipeId);
-      _comments = response.map((json) => Comment.fromJson(json)).toList();
+      _comments = await _apiService.getComments(recipeId);
     } catch (e) {
-      print('Error fetching comments: $e');
+      debugPrint('Error fetching comments: $e');
     }
 
     _isLoading = false;
     notifyListeners();
   }
 
+  /// Додає новий коментар і оновлює локальний список
   Future<void> addComment(int recipeId, String content) async {
     try {
-      await _apiService.addComment(recipeId, content);
-      await fetchComments(recipeId); // Refresh comments
+      final newComment = await _apiService.addComment(recipeId, content);
+      _comments.insert(0, newComment);
+      notifyListeners();
     } catch (e) {
-      print('Error adding comment: $e');
+      debugPrint('Error adding comment: $e');
       rethrow;
     }
   }
-} 
+}
