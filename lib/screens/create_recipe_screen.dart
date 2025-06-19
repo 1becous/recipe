@@ -188,7 +188,7 @@ class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
         ingredients: _ingredientsController.text,
         instructions: _instructionsController.text,
         cookingTime: _cookingTime,
-        difficulty: _difficulty,
+        difficulty: _difficulty, description: '',
       );
 
       if (widget.recipe == null) {

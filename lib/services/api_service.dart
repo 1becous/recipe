@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,18 +106,6 @@ class ApiService {
     return response.statusCode == 204;
   }
 
-  // Ratings endpoints
-  Future<Map<String, dynamic>> rateRecipe(int recipeId, double rating) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/ratings/'),
-      body: {
-        'recipe_id': recipeId.toString(),
-        'rating': rating.toString(),
-      },
-    );
-    return json.decode(response.body);
-  }
-
   // Comments endpoints
   Future<List<dynamic>> getComments(int recipeId) async {
     final response = await http.get(Uri.parse('$baseUrl/comments/recipe/$recipeId'));
@@ -124,7 +113,9 @@ class ApiService {
     if (data is List) {
       return data;
     } else {
-      print('Unexpected response for comments: $data');
+      if (kDebugMode) {
+        print('Unexpected response for comments: $data');
+      }
       return [];
     }
   }
@@ -200,39 +191,6 @@ class ApiService {
       }),
     );
 
-    return res.statusCode == 200;
-  }
-
-  // Get all ratings for a recipe
-  Future<List<dynamic>> fetchRecipeRatings(String token, int recipeId) async {
-    final res = await http.get(
-      Uri.parse('$baseUrl/ratings/recipe/$recipeId/'),
-      headers: {"Authorization": "Bearer $token"},
-    );
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    return [];
-  }
-
-  // Get all ratings by a user
-  Future<List<dynamic>> fetchUserRatings(String token, int userId) async {
-    final res = await http.get(
-      Uri.parse('$baseUrl/ratings/user/$userId/'),
-      headers: {"Authorization": "Bearer $token"},
-    );
-    if (res.statusCode == 200) {
-      return jsonDecode(res.body);
-    }
-    return [];
-  }
-
-  // Delete a rating by ID
-  Future<bool> deleteRating(String token, int ratingId) async {
-    final res = await http.delete(
-      Uri.parse('$baseUrl/ratings/$ratingId/'),
-      headers: {"Authorization": "Bearer $token"},
-    );
     return res.statusCode == 200;
   }
 }
